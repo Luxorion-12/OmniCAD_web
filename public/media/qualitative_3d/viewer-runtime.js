@@ -3837,7 +3837,7 @@ void main() {
   '#70675e',
   '#5f574f'
 ];
-const CASE_ROUGHNESS = [0.44, 0.42, 0.38, 0.36, 0.40, 0.35, 0.37, 0.33, 0.45, 0.41];`),s=s.replace(/function makeApprovedPartMaterial\(index\) \{[\s\S]*?\n\}/,`function makeApprovedPartMaterial(index) {
+const CASE_ROUGHNESS = [0.44, 0.42, 0.38, 0.36, 0.40, 0.35, 0.37, 0.33, 0.45, 0.41];`),s=s.replace(/function makePartMaterial\(index\) \{[\s\S]*?\n\}/,`function makePartMaterial(index) {
   const paletteIndex = index % CASE_COLORS.length;
   return new THREE.MeshStandardMaterial({
     color: new THREE.Color(CASE_COLORS[paletteIndex]),
@@ -3927,7 +3927,7 @@ const CASE_ROUGHNESS = [0.44, 0.42, 0.38, 0.36, 0.40, 0.35, 0.37, 0.33, 0.45, 0.
     obj.receiveShadow = true;
     meshIndex += 1;
   });
-}`),s=s.replace(/if \(useApprovedCase01Profile\) \{[\s\S]*?\n  \} else \{/,`if (useApprovedCase01Profile) {
+}`),s=s.replace(/if \(useUnifiedRenderProfile\) \{[\s\S]*?\n  \} else \{/,`if (useUnifiedRenderProfile) {
     renderer.toneMappingExposure = 0.88;
     hemiLight.intensity = 0.45;
     hemiLight.groundColor.setHex(0x73787c);
@@ -3937,7 +3937,7 @@ const CASE_ROUGHNESS = [0.44, 0.42, 0.38, 0.36, 0.40, 0.35, 0.37, 0.33, 0.45, 0.
     rimLight.position.set(-80, 360, -520);
     fillLight.intensity = 0.18;
   } else {`),s=s.replace("applyRenderProfile(useCase01ObjRenderer);","applyRenderProfile(true);"),s=s.replace("if (useCase01ObjRenderer) addCaseShadowFloor(modelRoot);","addCaseShadowFloor(modelRoot);"),new Function("THREE","OrbitControls","GLTFLoader","OBJLoader","RoomEnvironment",`${s}
-//# sourceURL=qualitative-atlas-runtime.js`)(Ru,ql,Yl,Jl,$l)}Cv().catch(s=>{console.error(s);let e=document.getElementById("loading"),t=document.getElementById("errorBox"),n=document.getElementById("errorText");e?.classList.add("done"),n&&(n.textContent=`Runtime boot failed: ${s.message}`),t?.classList.add("visible")});})();
+//# sourceURL=qualitative-viewer-runtime.js`)(Ru,ql,Yl,Jl,$l)}Cv().catch(s=>{console.error(s);let e=document.getElementById("loading"),t=document.getElementById("errorBox"),n=document.getElementById("errorText");e?.classList.add("done"),n&&(n.textContent=`Runtime boot failed: ${s.message}`),t?.classList.add("visible")});})();
 /**
  * @license
  * Copyright 2010-2024 Three.js Authors

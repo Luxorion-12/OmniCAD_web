@@ -112,13 +112,13 @@
 
         <div id="errorBox" class="error">
           <h2>Unable to load the result assets</h2>
-          <p id="errorText">Run a local HTTP server from the <strong>repository root</strong>, then open this folder through HTTP. Example:<br /><code>python -m http.server 8898</code></p>
+          <p id="errorText">The selected model could not be loaded. Please reload the page and try again.</p>
         </div>
       </div>
     </section>
   </main>
 
-  <script src="viewer-source.js?v=linkgpt-palette-v4"></script>
-  <script src="viewer-runtime.js?v=linkgpt-palette-v4" onerror="document.getElementById('loading').classList.add('done'); document.getElementById('errorText').textContent='Unable to read viewer-runtime.js'; document.getElementById('errorBox').classList.add('visible');"></script>
+  <script src="viewer-source.js?v=viewer-v5"></script>
+  <script src="viewer-runtime.js?v=viewer-v5" onerror="document.getElementById('loading').classList.add('done'); document.getElementById('errorText').textContent='Unable to read viewer-runtime.js'; document.getElementById('errorBox').classList.add('visible');"></script>
 </body>
 </html>

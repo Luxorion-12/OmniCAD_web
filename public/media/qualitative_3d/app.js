@@ -62,7 +62,7 @@ const VIEW_DIRS = {
   top: new THREE.Vector3(0, 1, 0)
 };
 
-// Exact premium-metal palette from the user-approved Single View commit 3ef8e807.
+// Neutral metallic palette for the ground-truth assembly components.
 const CASE_COLORS = [
   '#9a9d9d', // satin aluminum
   '#8e8f8c', // warm aluminum
@@ -189,11 +189,11 @@ function removeCaseShadowFloor() {
   floor.material?.dispose?.();
 }
 
-function applyRenderProfile(useApprovedCase01Profile) {
+function applyRenderProfile(useUnifiedRenderProfile) {
   removeCaseShadowFloor();
 
-  if (useApprovedCase01Profile) {
-    // Exact lighting from the approved 3ef8e807 Single View profile.
+  if (useUnifiedRenderProfile) {
+    // Shared lighting profile for assembly inspection.
     renderer.toneMappingExposure = 0.82;
     hemiLight.intensity = 0.32;
     hemiLight.groundColor.setHex(0x747a7e);
@@ -244,7 +244,7 @@ function disposeObject(root) {
   scene.remove(root);
 }
 
-function makeApprovedPartMaterial(index) {
+function makePartMaterial(index) {
   const paletteIndex = index % CASE_COLORS.length;
   return new THREE.MeshStandardMaterial({
     color: new THREE.Color(CASE_COLORS[paletteIndex]),
@@ -345,7 +345,7 @@ async function loadCase01GroundTruthFromParts() {
     object.rotation.order = 'ZYX';
     object.rotation.set(meta.r[0] * DEG, meta.r[1] * DEG, meta.r[2] * DEG);
 
-    const material = makeApprovedPartMaterial(index);
+    const material = makePartMaterial(index);
     object.traverse((child) => {
       if (!child.isMesh) return;
       if (!child.geometry.attributes.normal) child.geometry.computeVertexNormals();

@@ -5,7 +5,7 @@ import { OBJLoader } from './vendor/examples/jsm/loaders/OBJLoader.js';
 import { RoomEnvironment } from './vendor/examples/jsm/environments/RoomEnvironment.js';
 
 // Geometry stays untouched:
-//   Case 01 GT -> approved OBJ assembly
+//   Case 01 GT -> OBJ assembly
 //   every other displayed result -> its original generated GLB
 // This wrapper only normalizes materials, lights and shadows.
 async function boot() {
@@ -17,8 +17,7 @@ async function boot() {
   }
   source = source.replace(/^\s*import\s+[^\n]+\n/gm, '');
 
-  // Match the effective palette of linkgpt_01: its CRLF app.js retains this
-  // aluminum palette while the wrapper supplies the materials and lighting.
+  // Apply the aluminum palette consistently across source line endings.
   source = source.replace(
     /const CASE_COLORS = \[[\s\S]*?\];\r?\nconst CASE_ROUGHNESS = \[[\s\S]*?\];/,
     `const CASE_COLORS = [
@@ -37,8 +36,8 @@ const CASE_ROUGHNESS = [0.44, 0.42, 0.38, 0.36, 0.40, 0.35, 0.37, 0.33, 0.45, 0.
   );
 
   source = source.replace(
-    /function makeApprovedPartMaterial\(index\) \{[\s\S]*?\n\}/,
-    `function makeApprovedPartMaterial(index) {
+    /function makePartMaterial\(index\) \{[\s\S]*?\n\}/,
+    `function makePartMaterial(index) {
   const paletteIndex = index % CASE_COLORS.length;
   return new THREE.MeshStandardMaterial({
     color: new THREE.Color(CASE_COLORS[paletteIndex]),
@@ -142,8 +141,8 @@ const CASE_ROUGHNESS = [0.44, 0.42, 0.38, 0.36, 0.40, 0.35, 0.37, 0.33, 0.45, 0.
   // Apply the Case 01 GT lighting profile to every case/result so the overall
   // presentation is consistent. Geometry and model predictions are untouched.
   source = source.replace(
-    /if \(useApprovedCase01Profile\) \{[\s\S]*?\n  \} else \{/,
-    `if (useApprovedCase01Profile) {
+    /if \(useUnifiedRenderProfile\) \{[\s\S]*?\n  \} else \{/,
+    `if (useUnifiedRenderProfile) {
     renderer.toneMappingExposure = 0.88;
     hemiLight.intensity = 0.45;
     hemiLight.groundColor.setHex(0x73787c);
@@ -173,7 +172,7 @@ const CASE_ROUGHNESS = [0.44, 0.42, 0.38, 0.36, 0.40, 0.35, 0.37, 0.33, 0.45, 0.
     'GLTFLoader',
     'OBJLoader',
     'RoomEnvironment',
-    `${source}\n//# sourceURL=qualitative-atlas-runtime.js`
+    `${source}\n//# sourceURL=qualitative-viewer-runtime.js`
   );
   run(THREE, OrbitControls, GLTFLoader, OBJLoader, RoomEnvironment);
 }
