@@ -876,13 +876,13 @@
       <div class="shell">
         <div class="kicker light">Qualitative results</div>
         <div class="showcase-head">
-          <h2>Qualitative assembly examples</h2>
+          <h2>Qualitative assembly results</h2>
           <p class="copy">Interactive OmniCAD assembly cases. Drag to rotate, scroll to zoom, and pan within each 3D result.</p>
         </div>
         <div class="qualitative-3d-wrap">
           <iframe
             id="qualitative3dFrame"
-            src="./public/media/qualitative_3d/index.html?v=reference-unified-v14"
+            src="./public/media/qualitative_3d/index.html?v=linkgpt-palette-v4"
             title="OmniCAD interactive qualitative assembly examples"
             loading="eager"
             scrolling="no"
@@ -1374,6 +1374,42 @@
                 overflow:hidden!important;
                 background:transparent!important;
               }
+
+              /* Atlas single-view page surfaces inherit the dark OmniCAD shell. */
+              html.omnicad-host-dark .page-shell,
+              html.omnicad-host-dark .page-header,
+              html.omnicad-host-dark .case-nav,
+              html.omnicad-host-dark .result-frame,
+              html.omnicad-host-dark .model-tabs,
+              html.omnicad-host-dark .model-tab,
+              html.omnicad-host-dark .viewer-stage,
+              html.omnicad-host-dark #viewport,
+              html.omnicad-host-dark .panel,
+              html.omnicad-host-dark .status,
+              html.omnicad-host-dark .parts-chip,
+              html.omnicad-host-dark .dock,
+              html.omnicad-host-dark .cam-btn,
+              html.omnicad-host-dark .loading,
+              html.omnicad-host-dark .error{
+                background:var(--page-bg)!important;
+                border-color:#31576a!important;
+                color:#d9f8ff!important;
+              }
+              html.omnicad-host-dark .page-instruction,
+              html.omnicad-host-dark .status,
+              html.omnicad-host-dark .panel-kicker,
+              html.omnicad-host-dark .small,
+              html.omnicad-host-dark .dock-labels,
+              html.omnicad-host-dark .loader-text,
+              html.omnicad-host-dark .error p{color:#8fc6d7!important}
+              html.omnicad-host-dark .model-tab.active,
+              html.omnicad-host-dark .part-btn.active{background:#123647!important;color:#3ee8ff!important}
+              html.omnicad-host-dark .case-label span,
+              html.omnicad-host-dark .dock-value{color:#3ee8ff!important}
+              html.omnicad-host-dark .case-actions button,
+              html.omnicad-host-dark .cam-btn:hover,
+              html.omnicad-host-dark .dock-btn{background:#0b2230!important;border-color:#31576a!important;color:#d9f8ff!important}
+              html.omnicad-host-dark .part-btn{background:transparent!important;border-color:#31576a!important;color:#bfeef7!important}
               .wrap{
                 width:100%!important;
                 max-width:none!important;
@@ -1773,11 +1809,18 @@
           const activeCase = doc.querySelector('.case.active');
           const caseBar = doc.querySelector('.casebar');
           const casesRoot = doc.getElementById('cases');
+          const atlasFrame = doc.querySelector('.result-frame');
+          const atlasStage = doc.querySelector('.viewer-stage');
+          const pageShell = doc.querySelector('.page-shell');
 
-          const contentBottom = Math.max(
+          const contentBottom = atlasFrame ? atlasFrame.getBoundingClientRect().bottom : Math.max(
             activeCase ? activeCase.getBoundingClientRect().bottom : 0,
             caseBar ? caseBar.getBoundingClientRect().bottom : 0,
-            casesRoot ? casesRoot.getBoundingClientRect().bottom : 0
+            casesRoot ? casesRoot.getBoundingClientRect().bottom : 0,
+            atlasFrame ? atlasFrame.getBoundingClientRect().bottom : 0,
+            atlasStage ? atlasStage.getBoundingClientRect().bottom : 0,
+            pageShell ? pageShell.scrollHeight : 0,
+            doc.body ? doc.body.scrollHeight : 0
           );
 
           const h = Math.max(Math.ceil(contentBottom + 2), 530);
@@ -1806,7 +1849,26 @@
         });
       }
 
-      frame.addEventListener('load', refreshEmbeddedViewer);
+      function sendViewerTheme() {
+        frame.contentWindow?.postMessage({
+          type:'omnicad-viewer-theme',
+          dark:!document.body.classList.contains('bright'),
+          background:getComputedStyle(document.getElementById('showcase')).backgroundColor
+        }, '*');
+      }
+      window.addEventListener('message', event => {
+        if (event.source !== frame.contentWindow) return;
+        if (event.data?.type === 'omnicad-viewer-ready') sendViewerTheme();
+        if (event.data?.type === 'omnicad-viewer-height' && Number.isFinite(event.data.height)) {
+          const height = Math.max(530, Math.min(5000, event.data.height));
+          frame.style.height = height + 'px';
+          if (wrap) { wrap.style.height = height + 'px'; wrap.style.minHeight = height + 'px'; }
+        }
+      });
+      frame.addEventListener('load', () => { refreshEmbeddedViewer(); sendViewerTheme(); });
+      window.addEventListener('omnicad-themechange', sendViewerTheme);
+      if (frame.contentDocument?.readyState === 'complete') refreshEmbeddedViewer();
+      window.addEventListener('resize', syncQualitativeHeightOnce);
       window.addEventListener('omnicad-themechange', syncEmbeddedTheme);
     })();
   </script>

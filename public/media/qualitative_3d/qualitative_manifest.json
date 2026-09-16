@@ -44,6 +44,7 @@
           "glb": "models/case-01_lib00007.glb"
         }
       ],
+      "library_count": 7,
       "results": {
         "gt": "models/case-01_ground_truth.glb",
         "gpt55": "models/case-01_gpt55.glb",
@@ -53,12 +54,20 @@
         "gemini25": "models/case-01_gemini25.glb",
         "qwen37": "models/case-01_qwen37.glb",
         "qwen35": null
+      },
+      "part_counts": {
+        "gt": 10,
+        "gpt55": 7,
+        "claude48": 7,
+        "gemini31": 7,
+        "gemini25": 7,
+        "qwen37": 7
       }
     },
     {
       "case_key": "case-02",
       "case_no": 2,
-      "sample_name": "2149_0215_prepared_3824__02541_SR10C_953609b4",
+      "sample_name": "0291_prepared_3824__03698_TBDA10x10-ZE135A2_KOGANEI_7e24e597",
       "reference_views": [
         "reference_views/case-02_v01.png",
         "reference_views/case-02_v02.png",
@@ -97,17 +106,35 @@
         {
           "library_id": "lib00007",
           "glb": "models/case-02_lib00007.glb"
+        },
+        {
+          "library_id": "lib00008",
+          "glb": "models/case-02_lib00008.glb"
+        },
+        {
+          "library_id": "lib00009",
+          "glb": "models/case-02_lib00009.glb"
         }
       ],
+      "library_count": 9,
       "results": {
         "gt": "models/case-02_ground_truth.glb",
-        "gpt55": null,
-        "gpt54mini": null,
-        "claude48": null,
-        "gemini31": null,
-        "gemini25": null,
-        "qwen37": null,
+        "gpt55": "models/case-02_gpt55.glb",
+        "gpt54mini": "models/case-02_gpt54mini.glb",
+        "claude48": "models/case-02_claude48.glb",
+        "gemini31": "models/case-02_gemini31.glb",
+        "gemini25": "models/case-02_gemini25.glb",
+        "qwen37": "models/case-02_qwen37.glb",
         "qwen35": null
+      },
+      "part_counts": {
+        "gt": 10,
+        "gpt55": 10,
+        "gpt54mini": 9,
+        "claude48": 10,
+        "gemini31": 9,
+        "gemini25": 9,
+        "qwen37": 9
       }
     },
     {
@@ -154,6 +181,7 @@
           "glb": "models/case-03_lib00007.glb"
         }
       ],
+      "library_count": 7,
       "results": {
         "gt": "models/case-03_ground_truth.glb",
         "gpt55": "models/case-03_gpt55.glb",
@@ -163,12 +191,19 @@
         "gemini25": "models/case-03_gemini25.glb",
         "qwen37": null,
         "qwen35": null
+      },
+      "part_counts": {
+        "gt": 25,
+        "gpt55": 23,
+        "claude48": 7,
+        "gemini31": 13,
+        "gemini25": 7
       }
     },
     {
       "case_key": "case-04",
       "case_no": 4,
-      "sample_name": "2652_0341_prepared_3824__01915_SEPC2826.07.Humanoid.Robot.Product_7f613a36",
+      "sample_name": "0255_prepared_3824__03009_laser_module_97fe19dc",
       "reference_views": [
         "reference_views/case-04_v01.png",
         "reference_views/case-04_v02.png",
@@ -211,29 +246,27 @@
         {
           "library_id": "lib00008",
           "glb": "models/case-04_lib00008.glb"
-        },
-        {
-          "library_id": "lib00009",
-          "glb": "models/case-04_lib00009.glb"
-        },
-        {
-          "library_id": "lib00010",
-          "glb": "models/case-04_lib00010.glb"
-        },
-        {
-          "library_id": "lib00011",
-          "glb": "models/case-04_lib00011.glb"
         }
       ],
+      "library_count": 8,
       "results": {
         "gt": "models/case-04_ground_truth.glb",
-        "gpt55": null,
-        "gpt54mini": null,
-        "claude48": null,
-        "gemini31": null,
-        "gemini25": null,
-        "qwen37": null,
+        "gpt55": "models/case-04_gpt55.glb",
+        "gpt54mini": "models/case-04_gpt54mini.glb",
+        "claude48": "models/case-04_claude48.glb",
+        "gemini31": "models/case-04_gemini31.glb",
+        "gemini25": "models/case-04_gemini25.glb",
+        "qwen37": "models/case-04_qwen37.glb",
         "qwen35": null
+      },
+      "part_counts": {
+        "gt": 11,
+        "gpt55": 11,
+        "gpt54mini": 8,
+        "claude48": 8,
+        "gemini31": 8,
+        "gemini25": 8,
+        "qwen37": 8
       }
     },
     {
@@ -304,6 +337,7 @@
           "glb": "models/case-05_lib00013.glb"
         }
       ],
+      "library_count": 13,
       "results": {
         "gt": "models/case-05_ground_truth.glb",
         "gpt55": null,
@@ -313,6 +347,63 @@
         "gemini25": "models/case-05_gemini25.glb",
         "qwen37": null,
         "qwen35": null
+      },
+      "part_counts": {
+        "gt": 39,
+        "claude48": 26,
+        "gemini25": 13
+      }
+    },
+    {
+      "case_key": "case-06",
+      "case_no": 6,
+      "sample_name": "1424_0100_prepared_3824__01356_4c6bb877",
+      "reference_views": [
+        "reference_views/case-06_v01.png",
+        "reference_views/case-06_v02.png",
+        "reference_views/case-06_v03.png",
+        "reference_views/case-06_v04.png",
+        "reference_views/case-06_v05.png",
+        "reference_views/case-06_v06.png",
+        "reference_views/case-06_v07.png",
+        "reference_views/case-06_v08.png"
+      ],
+      "library_parts": [
+        {
+          "library_id": "lib00001",
+          "glb": "models/case-06_lib00001.glb"
+        },
+        {
+          "library_id": "lib00002",
+          "glb": "models/case-06_lib00002.glb"
+        },
+        {
+          "library_id": "lib00003",
+          "glb": "models/case-06_lib00003.glb"
+        },
+        {
+          "library_id": "lib00004",
+          "glb": "models/case-06_lib00004.glb"
+        }
+      ],
+      "library_count": 4,
+      "results": {
+        "gt": "models/case-06_ground_truth.glb",
+        "gpt55": "models/case-06_gpt55.glb",
+        "gpt54mini": "models/case-06_gpt54mini.glb",
+        "claude48": "models/case-06_claude48.glb",
+        "gemini31": "models/case-06_gemini31.glb",
+        "gemini25": "models/case-06_gemini25.glb",
+        "qwen37": null,
+        "qwen35": null
+      },
+      "part_counts": {
+        "gt": 12,
+        "gpt55": 14,
+        "gpt54mini": 4,
+        "claude48": 8,
+        "gemini31": 13,
+        "gemini25": 16
       }
     }
   ]

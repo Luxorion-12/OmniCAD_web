@@ -3,579 +3,122 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Qualitative Results</title>
-  <style>
-    :root {
-      color-scheme: light;
-      --ink: #173746;
-      --line: #9dcbd2;
-      --paper: #edf8f8;
-      --panel: #ffffff;
-      font-family: "Courier New", ui-monospace, monospace;
+  <title>Qualitative Results · Single View</title>
+  <link rel="stylesheet" href="style.css" />
+  <script>
+    window.addEventListener('message', event => {
+      if (event.source !== parent || event.data?.type !== 'omnicad-viewer-theme') return;
+      document.documentElement.classList.toggle('omnicad-host-dark', event.data.dark);
+      document.documentElement.style.setProperty('--page-bg', event.data.background);
+    });
+    if (window.parent !== window) {
+      document.documentElement.classList.add('embedded');
+      parent.postMessage({type:'omnicad-viewer-ready'}, '*');
+      document.addEventListener('DOMContentLoaded', () => {
+        const notify = () => {
+          const frame = document.querySelector('.result-frame');
+          if (frame) parent.postMessage({type:'omnicad-viewer-height', height:Math.ceil(frame.getBoundingClientRect().bottom + 2)}, '*');
+        };
+        new ResizeObserver(notify).observe(document.querySelector('.page-shell'));
+        notify();
+      });
     }
-    * { box-sizing: border-box; }
-    body { margin: 0; background: var(--paper); color: var(--ink); }
-    .wrap { width: min(1920px, 100vw); margin: 0 auto; padding: 18px 28px 26px; }
-    .top { display: grid; grid-template-columns: 1fr 0.9fr; gap: 28px; align-items: start; }
-    h1 { margin: 0; font-size: clamp(52px, 5.1vw, 96px); line-height: 0.96; letter-spacing: 2px; font-weight: 400; }
-    .hint { font-size: clamp(16px, 1.5vw, 28px); line-height: 1.7; color: #6b8790; padding-top: 2px; font-weight: 700; }
-    .casebar { margin: 18px 0 14px; width: min(820px, 44vw); border: 2px solid var(--line); background: white; display: flex; align-items: center; justify-content: space-between; padding: 16px 18px; }
-    .casebar .label { font-size: 18px; font-weight: 900; letter-spacing: 1px; }
-    .casebar .count { font-size: 28px; color: #2b96a8; margin-left: 12px; }
-    .navbtn { width: 50px; height: 42px; border: 2px solid var(--line); background: #f7ffff; color: var(--ink); font-size: 30px; font-weight: 900; cursor: pointer; margin-left: 8px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; padding: 0 0 2px; }
-    .layout { display: grid; grid-template-columns: 42.5% 57.5%; border: 2px solid var(--line); background: white; min-height: 690px; }
-    .left { border-right: 2px solid var(--line); display: grid; grid-template-rows: minmax(450px, 1fr) 190px; min-width: 0; }
-    .viewsarea { min-width:0; min-height:0; display:flex; flex-direction:column; background:white; }
-    .viewtitle { flex:0 0 auto; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 12px 0; margin:0; color:var(--ink); font-family:"Courier New",ui-monospace,monospace; }
-    .composite-view { position:relative; flex:1 1 auto; min-width:0; min-height:0; background:white; overflow:hidden; contain:layout paint; }
-    .composite-view img { position:absolute; inset:0; margin:auto; display:block; width:100%; height:100%; max-width:none; max-height:none; object-fit:contain; object-position:center; image-rendering:auto; border:0; outline:0; box-shadow:none; background:transparent; transform:scale(1.11); transform-origin:50% 50%; }
-    /* Per-case reference-image scale only. Keep all layout/interaction unchanged. */
-    /* Cases 02-06 use the same reference-image fit/scale. */
-    .case.case-02 .composite-view img,
-    .case.case-03 .composite-view img,
-    .case.case-04 .composite-view img,
-    .case.case-05 .composite-view img,
-    .case.case-06 .composite-view img { transform:scale(1.03); }
-    .libarea { border-top: 2px solid var(--line); padding: 9px 12px 10px; background: white; min-width: 0; }
-    .libtitle { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0; padding:0 0 7px; color:var(--ink); font-family:"Courier New",ui-monospace,monospace; }
-    .libtitle-main { font-size:11px; font-weight:900; letter-spacing:.12em; text-transform:uppercase; }
-    .libtitle-count { flex:0 0 auto; padding:4px 7px 3px; border:1px solid rgba(157,203,210,.86); background:#f7ffff; color:#4c7784; font-size:9px; font-weight:900; letter-spacing:.08em; line-height:1; }
-    .libstrip { display: flex; gap: 18px; overflow-x: scroll; overflow-y: hidden; height: 166px; padding: 3px 6px 10px; scrollbar-gutter: stable; }
-    .libstrip::-webkit-scrollbar { height: 12px; }
-    .libstrip::-webkit-scrollbar-track { background: #eaf5f6; border: 1px solid rgba(157,203,210,0.55); }
-    .libstrip::-webkit-scrollbar-thumb { background: #83b9c2; border: 2px solid #eaf5f6; border-radius: 999px; }
-    .libpart { flex: 0 0 160px; height: 150px; background: linear-gradient(180deg, #ffffff 0%, #fbfdfd 100%); border: 1px solid rgba(157,203,210,0.72); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.85); }
-    .results { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); align-self: stretch; }
-    .result { position: relative; min-width:0; min-height:0; overflow:hidden; contain:layout paint; border-right: 2px solid var(--line); border-bottom: 2px solid var(--line); background: white; }
-    .result:nth-child(4n) { border-right: 0; }
-    .result:nth-child(n+5) { border-bottom: 0; }
-    .model-badge { position:absolute; left:11px; top:11px; z-index:2; display:flex; flex-direction:column; align-items:flex-start; gap:4px; max-width:calc(100% - 22px); padding:7px 8px 6px; border:1px solid rgba(157,203,210,.95); background:rgba(255,255,255,.94); box-shadow:0 3px 12px rgba(41,75,83,.08); backdrop-filter:blur(4px); }
-    .tag { display:block; max-width:100%; overflow:visible; text-overflow:clip; white-space:normal; color:#173746; font-size:9px; font-weight:900; letter-spacing:.045em; line-height:1.12; }
-    .tag::after { display:none; }
-    .partcount { display:inline-flex; align-items:center; flex:0 0 auto; padding:3px 5px 2px; border:1px solid rgba(157,203,210,.72); background:#f7ffff; color:#56808c; font-size:8px; font-weight:900; letter-spacing:.06em; line-height:1; }
-    .viewer { width:100%; height:100%; min-width:0; min-height:0; background:white; cursor:grab; }
-    .result > .viewer { position:absolute; inset:0; width:auto; height:auto; min-height:0; overflow:hidden; }
-    .result > .viewer canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
-    .libpart.viewer { position:relative; overflow:hidden; }
-    .libpart.viewer canvas { position:absolute; inset:0; width:100%; height:100%; display:block; }
-    .failed { height:100%; min-height:0; display:flex; align-items:center; justify-content:center; text-align:center; font-size:clamp(20px,1.65vw,30px); letter-spacing:3px; font-weight:900; line-height:1.25; }
-    .result > .failed { position:absolute; inset:0; width:auto; height:auto; }
-    .failed.no-output { flex-direction: column; gap: 9px; }
-    .failed-note { font-size: 9px; line-height: 1.35; letter-spacing: 1.15px; font-weight: 900; color: #6b8790; white-space: nowrap; }
-    .viewer-retry { position:absolute; inset:0; z-index:3; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px; background:rgba(255,255,255,.96); color:#173746; text-align:center; font-size:9px; font-weight:900; letter-spacing:.08em; line-height:1.3; cursor:pointer; }
-    .libpart .viewer-retry { font-size:7px; letter-spacing:.05em; }
-    .case { display: none; }
-    .case.active { display: block; }
-    @media (max-width: 680px) and (pointer: coarse) {
-      .top { grid-template-columns: 1fr; }
-      .casebar { width: 100%; }
-      .layout { grid-template-columns: 1fr; }
-      .left { border-right: 0; border-bottom: 2px solid var(--line); }
-      .results { grid-template-columns: repeat(2, 1fr); }
-    }
-  </style>
+    try {
+      if (window.parent !== window) {
+        document.documentElement.classList.add('embedded');
+        const sync = () => {
+          document.documentElement.classList.toggle('omnicad-host-dark', !parent.document.body.classList.contains('bright'));
+          const section = parent.document.getElementById('showcase');
+          if (section) document.documentElement.style.setProperty('--page-bg', parent.getComputedStyle(section).backgroundColor);
+        };
+        sync();
+        new MutationObserver(sync).observe(parent.document.body, {attributes:true, attributeFilter:['class']});
+      }
+    } catch (error) { console.warn('Viewer theme sync unavailable', error); }
+  </script>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <h1>QUALITATIVE RESULTS</h1>
-      <div class="hint">Hover the input views to inspect details.<br />Drag models to orbit and scroll to zoom.</div>
-    </div>
-    <div class="casebar">
-      <div><span class="label">TEST CASE</span><span class="count" id="caseCount">01 / 06</span></div>
-      <div><button class="navbtn" id="prevCase" type="button">&#8592;</button><button class="navbtn" id="nextCase" type="button">&#8594;</button></div>
-    </div>
-    <main id="cases"></main>
-  </div>
-  <script type="module">
-    import * as THREE from 'https://esm.sh/three@0.170.0';
-    import { OrbitControls } from 'https://esm.sh/three@0.170.0/examples/jsm/controls/OrbitControls.js';
-    import { GLTFLoader } from 'https://esm.sh/three@0.170.0/examples/jsm/loaders/GLTFLoader.js';
-    import { RoomEnvironment } from 'https://esm.sh/three@0.170.0/examples/jsm/environments/RoomEnvironment.js';
+  <main class="page-shell">
+    <header class="page-header">
+      <h1>QUALITATIVE<br />RESULTS</h1>
+      <p class="page-instruction">Drag to orbit · Scroll to zoom · Click a component to inspect.</p>
+    </header>
 
-    const manifest = {"samples":[{"case_key":"case-01","case_no":1,"sample_name":"2129_01871_02497_Robotic_Arm_23ea8dcb","reference_views":["reference_views/case-01_v01.png","reference_views/case-01_v02.png","reference_views/case-01_v03.png","reference_views/case-01_v04.png","reference_views/case-01_v05.png","reference_views/case-01_v06.png","reference_views/case-01_v07.png","reference_views/case-01_v08.png"],"library_parts":[{"library_id":"lib00001","glb":"models/case-01_lib00001.glb"},{"library_id":"lib00002","glb":"models/case-01_lib00002.glb"},{"library_id":"lib00003","glb":"models/case-01_lib00003.glb"},{"library_id":"lib00004","glb":"models/case-01_lib00004.glb"},{"library_id":"lib00005","glb":"models/case-01_lib00005.glb"},{"library_id":"lib00006","glb":"models/case-01_lib00006.glb"},{"library_id":"lib00007","glb":"models/case-01_lib00007.glb"}],"library_count":7,"results":{"gt":"models/case-01_ground_truth.glb","gpt55":"models/case-01_gpt55.glb","gpt54mini":null,"claude48":"models/case-01_claude48.glb","gemini31":"models/case-01_gemini31.glb","gemini25":"models/case-01_gemini25.glb","qwen37":"models/case-01_qwen37.glb","qwen35":null},"part_counts":{"gt":10,"gpt55":7,"claude48":7,"gemini31":7,"gemini25":7,"qwen37":7}},{"case_key":"case-02","case_no":2,"sample_name":"0291_prepared_3824__03698_TBDA10x10-ZE135A2_KOGANEI_7e24e597","reference_views":["reference_views/case-02_v01.png","reference_views/case-02_v02.png","reference_views/case-02_v03.png","reference_views/case-02_v04.png","reference_views/case-02_v05.png","reference_views/case-02_v06.png","reference_views/case-02_v07.png","reference_views/case-02_v08.png"],"library_parts":[{"library_id":"lib00001","glb":"models/case-02_lib00001.glb"},{"library_id":"lib00002","glb":"models/case-02_lib00002.glb"},{"library_id":"lib00003","glb":"models/case-02_lib00003.glb"},{"library_id":"lib00004","glb":"models/case-02_lib00004.glb"},{"library_id":"lib00005","glb":"models/case-02_lib00005.glb"},{"library_id":"lib00006","glb":"models/case-02_lib00006.glb"},{"library_id":"lib00007","glb":"models/case-02_lib00007.glb"},{"library_id":"lib00008","glb":"models/case-02_lib00008.glb"},{"library_id":"lib00009","glb":"models/case-02_lib00009.glb"}],"library_count":9,"results":{"gt":"models/case-02_ground_truth.glb","gpt55":"models/case-02_gpt55.glb","gpt54mini":"models/case-02_gpt54mini.glb","claude48":"models/case-02_claude48.glb","gemini31":"models/case-02_gemini31.glb","gemini25":"models/case-02_gemini25.glb","qwen37":"models/case-02_qwen37.glb","qwen35":null},"part_counts":{"gt":10,"gpt55":10,"gpt54mini":9,"claude48":10,"gemini31":9,"gemini25":9,"qwen37":9}},{"case_key":"case-03","case_no":3,"sample_name":"2211_00712_00876_Assem1_45ed28d6","reference_views":["reference_views/case-03_v01.png","reference_views/case-03_v02.png","reference_views/case-03_v03.png","reference_views/case-03_v04.png","reference_views/case-03_v05.png","reference_views/case-03_v06.png","reference_views/case-03_v07.png","reference_views/case-03_v08.png"],"library_parts":[{"library_id":"lib00001","glb":"models/case-03_lib00001.glb"},{"library_id":"lib00002","glb":"models/case-03_lib00002.glb"},{"library_id":"lib00003","glb":"models/case-03_lib00003.glb"},{"library_id":"lib00004","glb":"models/case-03_lib00004.glb"},{"library_id":"lib00005","glb":"models/case-03_lib00005.glb"},{"library_id":"lib00006","glb":"models/case-03_lib00006.glb"},{"library_id":"lib00007","glb":"models/case-03_lib00007.glb"}],"library_count":7,"results":{"gt":"models/case-03_ground_truth.glb","gpt55":"models/case-03_gpt55.glb","gpt54mini":null,"claude48":"models/case-03_claude48.glb","gemini31":"models/case-03_gemini31.glb","gemini25":"models/case-03_gemini25.glb","qwen37":null,"qwen35":null},"part_counts":{"gt":25,"gpt55":23,"claude48":7,"gemini31":13,"gemini25":7}},{"case_key":"case-04","case_no":4,"sample_name":"0255_prepared_3824__03009_laser_module_97fe19dc","reference_views":["reference_views/case-04_v01.png","reference_views/case-04_v02.png","reference_views/case-04_v03.png","reference_views/case-04_v04.png","reference_views/case-04_v05.png","reference_views/case-04_v06.png","reference_views/case-04_v07.png","reference_views/case-04_v08.png"],"library_parts":[{"library_id":"lib00001","glb":"models/case-04_lib00001.glb"},{"library_id":"lib00002","glb":"models/case-04_lib00002.glb"},{"library_id":"lib00003","glb":"models/case-04_lib00003.glb"},{"library_id":"lib00004","glb":"models/case-04_lib00004.glb"},{"library_id":"lib00005","glb":"models/case-04_lib00005.glb"},{"library_id":"lib00006","glb":"models/case-04_lib00006.glb"},{"library_id":"lib00007","glb":"models/case-04_lib00007.glb"},{"library_id":"lib00008","glb":"models/case-04_lib00008.glb"}],"library_count":8,"results":{"gt":"models/case-04_ground_truth.glb","gpt55":"models/case-04_gpt55.glb","gpt54mini":"models/case-04_gpt54mini.glb","claude48":"models/case-04_claude48.glb","gemini31":"models/case-04_gemini31.glb","gemini25":"models/case-04_gemini25.glb","qwen37":"models/case-04_qwen37.glb","qwen35":null},"part_counts":{"gt":11,"gpt55":11,"gpt54mini":8,"claude48":8,"gemini31":8,"gemini25":8,"qwen37":8}},{"case_key":"case-05","case_no":5,"sample_name":"2767_0389_prepared_3824__01763_KX.650_888498ce","reference_views":["reference_views/case-05_v01.png","reference_views/case-05_v02.png","reference_views/case-05_v03.png","reference_views/case-05_v04.png","reference_views/case-05_v05.png","reference_views/case-05_v06.png","reference_views/case-05_v07.png","reference_views/case-05_v08.png"],"library_parts":[{"library_id":"lib00001","glb":"models/case-05_lib00001.glb"},{"library_id":"lib00002","glb":"models/case-05_lib00002.glb"},{"library_id":"lib00003","glb":"models/case-05_lib00003.glb"},{"library_id":"lib00004","glb":"models/case-05_lib00004.glb"},{"library_id":"lib00005","glb":"models/case-05_lib00005.glb"},{"library_id":"lib00006","glb":"models/case-05_lib00006.glb"},{"library_id":"lib00007","glb":"models/case-05_lib00007.glb"},{"library_id":"lib00008","glb":"models/case-05_lib00008.glb"},{"library_id":"lib00009","glb":"models/case-05_lib00009.glb"},{"library_id":"lib00010","glb":"models/case-05_lib00010.glb"},{"library_id":"lib00011","glb":"models/case-05_lib00011.glb"},{"library_id":"lib00012","glb":"models/case-05_lib00012.glb"},{"library_id":"lib00013","glb":"models/case-05_lib00013.glb"}],"library_count":13,"results":{"gt":"models/case-05_ground_truth.glb","gpt55":null,"gpt54mini":null,"claude48":"models/case-05_claude48.glb","gemini31":null,"gemini25":"models/case-05_gemini25.glb","qwen37":null,"qwen35":null},"part_counts":{"gt":39,"claude48":26,"gemini25":13}},{"case_key":"case-06","case_no":6,"sample_name":"1424_0100_prepared_3824__01356_4c6bb877","reference_views":["reference_views/case-06_v01.png","reference_views/case-06_v02.png","reference_views/case-06_v03.png","reference_views/case-06_v04.png","reference_views/case-06_v05.png","reference_views/case-06_v06.png","reference_views/case-06_v07.png","reference_views/case-06_v08.png"],"library_parts":[{"library_id":"lib00001","glb":"models/case-06_lib00001.glb"},{"library_id":"lib00002","glb":"models/case-06_lib00002.glb"},{"library_id":"lib00003","glb":"models/case-06_lib00003.glb"},{"library_id":"lib00004","glb":"models/case-06_lib00004.glb"}],"library_count":4,"results":{"gt":"models/case-06_ground_truth.glb","gpt55":"models/case-06_gpt55.glb","gpt54mini":"models/case-06_gpt54mini.glb","claude48":"models/case-06_claude48.glb","gemini31":"models/case-06_gemini31.glb","gemini25":"models/case-06_gemini25.glb","qwen37":null,"qwen35":null},"part_counts":{"gt":12,"gpt55":14,"gpt54mini":4,"claude48":8,"gemini31":13,"gemini25":16}}]};
-    const resultColumns = [["gt", "GROUND TRUTH"], ["gpt55", "GPT 5.5"], ["gpt54mini", "GPT 5.4 MINI"], ["claude48", "CLAUDE OPUS 4.8"], ["gemini31", "GEMINI 3.1 PRO"], ["gemini25", "GEMINI 2.5 FLASH"], ["qwen37", "QWEN 3.7 PLUS"], ["qwen35", "QWEN 3.5 9B"]];
-    const loader = new GLTFLoader();
-    const viewerStates = new Map();
-    let libraryObserver = null;
-    let active = 0;
+    <section class="case-nav" aria-label="Test case navigation">
+      <div class="case-label">TEST CASE <span id="caseCount">01 / 06</span></div>
+      <div class="case-actions">
+        <button id="prevCase" type="button" aria-label="Previous test case">←</button>
+        <button id="nextCase" type="button" aria-label="Next test case">→</button>
+      </div>
+    </section>
 
-    const MAX_PIXEL_RATIO = 2;
-    const MAX_LOAD_RETRIES = 2;
-    const RETRY_DELAYS_MS = [350, 900];
+    <section class="result-frame" aria-label="Selected qualitative result">
+      <div id="modelTabs" class="model-tabs" role="tablist" aria-label="Model result source">
+        <button class="model-tab active" data-model="gt" type="button" role="tab" aria-selected="true">GROUND TRUTH</button>
+        <button class="model-tab" data-model="gpt55" type="button" role="tab" aria-selected="false">GPT 5.5</button>
+        <button class="model-tab" data-model="gpt54mini" type="button" role="tab" aria-selected="false">GPT 5.4 MINI</button>
+        <button class="model-tab" data-model="claude48" type="button" role="tab" aria-selected="false">CLAUDE OPUS 4.8</button>
+        <button class="model-tab" data-model="gemini31" type="button" role="tab" aria-selected="false">GEMINI 3.1 PRO</button>
+        <button class="model-tab" data-model="gemini25" type="button" role="tab" aria-selected="false">GEMINI 2.5 FLASH</button>
+        <button class="model-tab" data-model="qwen37" type="button" role="tab" aria-selected="false">QWEN 3.7 PLUS</button>
+        <button class="model-tab" data-model="qwen35" type="button" role="tab" aria-selected="false">QWEN 3.5 9B</button>
+      </div>
 
-    function buildCases() {
-      const root = document.getElementById('cases');
-      root.innerHTML = manifest.samples.map((sample, idx) => `
-        <section class="case ${sample.case_key} ${idx === 0 ? 'active' : ''}" data-case="${idx}">
-          <div class="layout">
-            <aside class="left">
-              <div class="viewsarea">
-                <div class="viewtitle"><span class="libtitle-main">REFERENCE ASSEMBLY IMG</span></div>
-                <div class="composite-view">
-                  <img src="reference_views/${sample.case_key}_composite.png" alt="Composite reference views for ${sample.case_key}">
-                </div>
-              </div>
-              <div class="libarea">
-                <div class="libtitle"><span class="libtitle-main">LIBRARY PARTS</span><span class="libtitle-count">${sample.library_count} LIBS</span></div>
-                <div class="libstrip">
-                  ${sample.library_parts.map(part => `<div class="libpart viewer" data-src="${part.glb}?v=qual-layout-hidpi-v1"></div>`).join('')}
-                </div>
-              </div>
-            </aside>
-            <section class="results">
-              ${resultColumns.map(([key, label]) => {
-                const glb = sample.results[key];
-                const partCount = sample.part_counts?.[key];
-                const countBadge = partCount == null ? '' : `<span class="partcount">${partCount} PARTS</span>`;
-                const modelBadge = `<div class="model-badge"><span class="tag">${label}</span>${countBadge}</div>`;
-                if (!glb) return `<article class="result">${modelBadge}<div class="failed no-output"><span>NO OUTPUT</span><span class="failed-note">OUT OF TOKEN WINDOW</span></div></article>`;
-                return `<article class="result">${modelBadge}<div class="viewer" data-src="${glb}?v=qual-layout-hidpi-v1"></div></article>`;
-              }).join('')}
-            </section>
+      <div id="viewerStage" class="viewer-stage">
+        <div id="viewport"></div>
+        <div id="status" class="status">Case 01 · Ground Truth</div>
+        <div id="partsChip" class="parts-chip">10 PARTS</div>
+        <div id="noOutput" class="no-output" aria-live="polite">NO OUTPUT</div>
+
+        <aside class="panel parts-panel">
+          <div class="panel-head">
+            <div class="panel-kicker">Components</div>
+            <div class="panel-title">Assembly parts</div>
           </div>
+          <div id="partsList" class="parts-list"></div>
+          <div class="panel-foot">
+            <span id="visibleCount" class="small">0 pieces visible</span>
+            <button id="clearSelection" class="tiny-btn" type="button">Show assembly</button>
+          </div>
+        </aside>
+
+        <aside class="panel camera-panel" aria-label="Camera views">
+          <button class="cam-btn" data-view="perspective" type="button"><strong>◇</strong>3/4</button>
+          <button class="cam-btn" data-view="front" type="button"><strong>▣</strong>Front</button>
+          <button class="cam-btn" data-view="side" type="button"><strong>◫</strong>Side</button>
+          <button class="cam-btn" data-view="top" type="button"><strong>▤</strong>Top</button>
+          <button class="cam-btn" data-view="fit" type="button"><strong>⌗</strong>Fit</button>
+        </aside>
+
+        <section id="dock" class="dock" aria-label="Explosion control">
+          <div class="dock-top">
+            <span class="dock-title">Explode assembly</span>
+            <span id="explodeValue" class="dock-value">0%</span>
+          </div>
+          <div class="range-row">
+            <input id="explodeRange" type="range" min="0" max="100" value="0" step="1" />
+            <button id="assembleBtn" class="dock-btn" type="button">Assemble</button>
+            <button id="explodeBtn" class="dock-btn" type="button">Explode</button>
+          </div>
+          <div class="dock-labels"><span>Assembled</span><span>Exploded</span></div>
         </section>
-      `).join('');
-    }
 
-    function fitCamera(camera, controls, object, pad = 1.12) {
-      const box = new THREE.Box3().setFromObject(object);
-      const size = box.getSize(new THREE.Vector3());
-      const center = box.getCenter(new THREE.Vector3());
-      const maxDim = Math.max(size.x, size.y, size.z) || 1;
-      const fov = camera.fov * Math.PI / 180;
-      const distance = Math.abs(maxDim / (2 * Math.tan(fov / 2))) * pad;
-      camera.position.set(center.x + distance * 0.95, center.y - distance * 1.05, center.z + distance * 0.92);
-      camera.near = Math.max(distance / 1000, 0.01);
-      camera.far = distance * 1000;
-      camera.updateProjectionMatrix();
-      controls.target.copy(center);
-      controls.update();
-    }
-
-    function averageVertexColor(geometry) {
-      const attr = geometry.getAttribute('color');
-      if (!attr || attr.count === 0) return new THREE.Color(0.74, 0.74, 0.72);
-      let r = 0, g = 0, b = 0;
-      for (let i = 0; i < attr.count; i += 1) { r += attr.getX(i); g += attr.getY(i); b += attr.getZ(i); }
-      const inv = 1 / attr.count;
-      return new THREE.Color(r * inv, g * inv, b * inv);
-    }
-
-    function displayColorFor(source) {
-      const color = source.clone();
-      color.offsetHSL(0, 0.10, 0.045);
-      return color;
-    }
-
-    const COMPONENT_PALETTE = [
-      '#9f9736', '#9d5187', '#ad762f', '#3f8353',
-      '#838987', '#3e7793', '#a85e88', '#579262',
-      '#9e6530', '#3c6f8c', '#625791', '#aea049'
-    ].map(hex => new THREE.Color(hex));
-
-    function componentIndexFromObject(obj, fallbackIndex) {
-      const names = [];
-      let current = obj;
-      while (current) {
-        if (current.name) names.push(current.name);
-        current = current.parent;
-      }
-      const joined = names.join(' ');
-      const match = joined.match(/(?:^|[^a-z0-9])(?:c|lib)0*(\d+)/i);
-      if (!match) return fallbackIndex;
-      return Math.max(0, parseInt(match[1], 10) - 1);
-    }
-
-    function componentDisplayColor(obj, fallbackIndex) {
-      const idx = componentIndexFromObject(obj, fallbackIndex);
-      const color = COMPONENT_PALETTE[idx % COMPONENT_PALETTE.length].clone();
-      return color;
-    }
-
-    function disposeObject3D(root) {
-      if (!root) return;
-      root.traverse((obj) => {
-        if (obj.geometry?.dispose) obj.geometry.dispose();
-        const materials = Array.isArray(obj.material) ? obj.material : (obj.material ? [obj.material] : []);
-        materials.forEach((material) => {
-          if (!material) return;
-          for (const value of Object.values(material)) {
-            if (value && typeof value === 'object' && value.isTexture && value.dispose) {
-              try { value.dispose(); } catch (e) {}
-            }
-          }
-          try { material.dispose?.(); } catch (e) {}
-        });
-      });
-    }
-
-    function clearViewerRetry(el) {
-      el.querySelectorAll(':scope > .viewer-retry').forEach((node) => node.remove());
-    }
-
-    function showViewerRetry(el, title, note, onRetry) {
-      clearViewerRetry(el);
-      const overlay = document.createElement('div');
-      overlay.className = 'viewer-retry';
-      overlay.innerHTML = `<span>${title}</span>${note ? `<span class="failed-note">${note}</span>` : ''}`;
-      if (onRetry) {
-        overlay.title = 'Click to retry';
-        overlay.addEventListener('click', (event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          overlay.remove();
-          onRetry();
-        }, { once: true });
-      } else {
-        overlay.style.cursor = 'default';
-      }
-      el.appendChild(overlay);
-    }
-
-    function disposeViewer(el, { forceContextLoss = true, keepOverlay = false } = {}) {
-      const state = viewerStates.get(el);
-      if (!state) return;
-
-      state.disposed = true;
-      if (state.retryTimer) clearTimeout(state.retryTimer);
-      if (state.raf) cancelAnimationFrame(state.raf);
-      try { state.ro?.disconnect(); } catch (e) {}
-      try { state.controls?.dispose(); } catch (e) {}
-      try { disposeObject3D(state.model); } catch (e) {}
-      try { state.envTarget?.dispose(); } catch (e) {}
-      try { state.pmrem?.dispose(); } catch (e) {}
-
-      if (state.renderer) {
-        try { state.renderer.dispose(); } catch (e) {}
-        if (forceContextLoss) {
-          try { state.renderer.forceContextLoss?.(); } catch (e) {}
-        }
-        try { state.renderer.domElement?.remove(); } catch (e) {}
-      }
-
-      viewerStates.delete(el);
-      if (!keepOverlay) clearViewerRetry(el);
-    }
-
-    function disposeCase(caseEl) {
-      if (!caseEl) return;
-      caseEl.querySelectorAll('.viewer').forEach((el) => disposeViewer(el));
-    }
-
-    function viewerShouldBeActive(el) {
-      const caseEl = el.closest('.case');
-      if (!caseEl || !caseEl.classList.contains('active')) return false;
-      if (el.classList.contains('libpart')) return el.dataset.omnicadVisible === '1';
-      return true;
-    }
-
-    function retryUrl(url, attempt) {
-      if (!attempt) return url;
-      const joiner = url.includes('?') ? '&' : '?';
-      return `${url}${joiner}retry=${attempt}-${Date.now()}`;
-    }
-
-    function initViewer(el) {
-      if (!el?.dataset?.src || viewerStates.has(el) || !viewerShouldBeActive(el)) return;
-
-      clearViewerRetry(el);
-
-      let renderer;
-      try {
-        renderer = new THREE.WebGLRenderer({
-          antialias: true,
-          alpha: true,
-          powerPreference: 'high-performance'
-        });
-      } catch (error) {
-        showViewerRetry(el, 'WEBGL UNAVAILABLE', 'CLICK TO RETRY', () => initViewer(el));
-        return;
-      }
-
-      /* 4x DPR across 10+ simultaneous canvases is unnecessarily expensive and
-         was one of the main GPU-memory pressure sources. 2x remains crisp. */
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO));
-      renderer.outputColorSpace = THREE.SRGBColorSpace;
-      renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      renderer.toneMappingExposure = 0.88;
-      el.appendChild(renderer.domElement);
-
-      const scene = new THREE.Scene();
-      const pmrem = new THREE.PMREMGenerator(renderer);
-      const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
-      scene.environment = envTarget.texture;
-
-      scene.add(new THREE.HemisphereLight(0xffffff, 0xdfe8ec, 0.58));
-      scene.add(new THREE.AmbientLight(0xffffff, 0.28));
-
-      const key = new THREE.DirectionalLight(0xfff5dd, 1.16);
-      key.position.set(2.4, -3.0, 4.8);
-      scene.add(key);
-
-      const fill = new THREE.DirectionalLight(0xe7f7ff, 0.34);
-      fill.position.set(-3.2, 2.0, 2.2);
-      scene.add(fill);
-
-      const rim = new THREE.DirectionalLight(0xffffff, 0.34);
-      rim.position.set(-1.8, -2.4, 5.2);
-      scene.add(rim);
-
-      const camera = new THREE.PerspectiveCamera(36, 1, 0.01, 100000);
-      const controls = new OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.dampingFactor = 0.055;
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 1.8;
-      controls.enablePan = true;
-
-      const state = {
-        renderer, scene, pmrem, envTarget, camera, controls,
-        ro: null, raf: 0, model: null, disposed: false, retryTimer: 0,
-        lastRenderWidth: 0, lastRenderHeight: 0, lastFrameTime: 0
-      };
-      viewerStates.set(el, state);
-
-      function resize() {
-        if (state.disposed) return;
-        const rect = el.getBoundingClientRect();
-        const width = Math.max(1, Math.round(rect.width));
-        const height = Math.max(1, Math.round(rect.height));
-
-        if (width === state.lastRenderWidth && height === state.lastRenderHeight) return;
-        state.lastRenderWidth = width;
-        state.lastRenderHeight = height;
-
-        renderer.setSize(width, height, false);
-        camera.aspect = width / height;
-        camera.updateProjectionMatrix();
-      }
-
-      function recoverFromContextLoss() {
-        if (state.disposed) return;
-        disposeViewer(el, { forceContextLoss: false });
-        if (!viewerShouldBeActive(el)) return;
-        showViewerRetry(el, 'RECOVERING WEBGL', 'PLEASE WAIT', null);
-        setTimeout(() => {
-          if (!viewerShouldBeActive(el)) return;
-          clearViewerRetry(el);
-          initViewer(el);
-        }, 300);
-      }
-
-      renderer.domElement.addEventListener('webglcontextlost', (event) => {
-        event.preventDefault();
-        recoverFromContextLoss();
-      }, { passive: false });
-
-      function loadAttempt(attempt = 0) {
-        if (state.disposed || !viewerShouldBeActive(el)) return;
-
-        loader.load(retryUrl(el.dataset.src, attempt), (gltf) => {
-          if (state.disposed || !viewerShouldBeActive(el)) {
-            disposeObject3D(gltf.scene);
-            return;
-          }
-
-          const model = gltf.scene;
-          state.model = model;
-          let meshIndex = 0;
-
-          model.traverse((obj) => {
-            if (!obj.isMesh) return;
-            if (obj.geometry && obj.geometry.getAttribute('color')) {
-              obj.geometry.deleteAttribute('color');
-            }
-            if (obj.geometry) obj.geometry.computeVertexNormals();
-
-            const displayColor = componentDisplayColor(obj, meshIndex);
-            meshIndex += 1;
-
-            obj.material = new THREE.MeshStandardMaterial({
-              color: displayColor,
-              roughness: 0.56,
-              metalness: 0.04,
-              envMapIntensity: 0.18,
-              emissive: displayColor.clone().multiplyScalar(0.02),
-              emissiveIntensity: 0.018,
-              vertexColors: false,
-              side: THREE.DoubleSide,
-              transparent: false,
-              opacity: 1.0,
-              toneMapped: false
-            });
-
-            try {
-              const edgeGeom = new THREE.EdgesGeometry(obj.geometry, 78);
-              const edgeMat = new THREE.LineBasicMaterial({
-                color: 0x13222a,
-                transparent: true,
-                opacity: 0.10,
-                depthTest: true,
-                depthWrite: false
-              });
-              const edges = new THREE.LineSegments(edgeGeom, edgeMat);
-              edges.renderOrder = 2;
-              obj.add(edges);
-            } catch (err) {}
-          });
-
-          scene.add(model);
-          resize();
-          fitCamera(camera, controls, model, el.classList.contains('libpart') ? 1.00 : 1.40);
-          clearViewerRetry(el);
-        }, undefined, () => {
-          if (state.disposed) return;
-
-          if (attempt < MAX_LOAD_RETRIES) {
-            const delay = RETRY_DELAYS_MS[attempt] ?? 900;
-            showViewerRetry(el, 'RETRYING', `${attempt + 1} / ${MAX_LOAD_RETRIES}`, null);
-            state.retryTimer = setTimeout(() => {
-              clearViewerRetry(el);
-              loadAttempt(attempt + 1);
-            }, delay);
-            return;
-          }
-
-          disposeViewer(el, { keepOverlay: true });
-          showViewerRetry(el, 'LOAD FAILED', 'CLICK TO RETRY', () => initViewer(el));
-        });
-      }
-
-      state.ro = new ResizeObserver(resize);
-      state.ro.observe(el);
-
-      function animate(time) {
-        if (state.disposed) return;
-        state.raf = requestAnimationFrame(animate);
-
-        if (document.hidden || !viewerShouldBeActive(el)) return;
-
-        /* 30fps is enough for the slow auto-rotation and cuts GPU load roughly
-           in half when many result viewers are visible at the same time. */
-        if (time - state.lastFrameTime < 33) return;
-        state.lastFrameTime = time;
-
-        controls.update();
-        renderer.render(scene, camera);
-      }
-
-      resize();
-      loadAttempt(0);
-      state.raf = requestAnimationFrame(animate);
-    }
-
-    function setupLibraryObserver(caseEl) {
-      if (libraryObserver) {
-        libraryObserver.disconnect();
-        libraryObserver = null;
-      }
-
-      const strip = caseEl?.querySelector('.libstrip');
-      if (!strip) return;
-
-      const parts = Array.from(strip.querySelectorAll('.libpart.viewer'));
-      parts.forEach((el) => { el.dataset.omnicadVisible = '0'; });
-
-      if (!('IntersectionObserver' in window)) {
-        parts.slice(0, 5).forEach((el) => {
-          el.dataset.omnicadVisible = '1';
-          initViewer(el);
-        });
-        return;
-      }
-
-      libraryObserver = new IntersectionObserver((entries) => {
-        entries.forEach((entry) => {
-          const el = entry.target;
-          if (entry.isIntersecting) {
-            el.dataset.omnicadVisible = '1';
-            initViewer(el);
-          } else {
-            el.dataset.omnicadVisible = '0';
-            /* Free off-screen library WebGL contexts instead of keeping every
-               part from every scrolled position alive forever. */
-            setTimeout(() => {
-              if (el.dataset.omnicadVisible !== '1') disposeViewer(el);
-            }, 500);
-          }
-        });
-      }, {
-        root: strip,
-        rootMargin: '0px 80px',
-        threshold: 0.01
-      });
-
-      parts.forEach((el) => libraryObserver.observe(el));
-    }
-
-    function clearLegacyResultSizing() {
-      /* Right-side sizing is CSS-driven now. Never retain inline heights across
-         browser zoom/reset; stale inline heights were what prevented Ctrl+0
-         from restoring the Qualitative section to its original geometry. */
-      document.querySelectorAll('.results').forEach((results) => {
-        results.style.removeProperty('height');
-      });
-      document.querySelectorAll('.result').forEach((card) => {
-        card.style.removeProperty('height');
-        card.style.removeProperty('min-height');
-      });
-      document.querySelectorAll('.result .viewer, .result .failed').forEach((node) => {
-        node.style.removeProperty('height');
-        node.style.removeProperty('min-height');
-      });
-    }
-
-    function showCase(next) {
-      const previous = active;
-      const resolved = (next + manifest.samples.length) % manifest.samples.length;
-
-      if (resolved !== previous) {
-        const previousCase = document.querySelector(`.case[data-case="${previous}"]`);
-        disposeCase(previousCase);
-        if (libraryObserver) {
-          libraryObserver.disconnect();
-          libraryObserver = null;
-        }
-      }
-
-      active = resolved;
-      document.querySelectorAll('.case').forEach((el, idx) => el.classList.toggle('active', idx === active));
-      document.getElementById('caseCount').textContent = `${String(active + 1).padStart(2, '0')} / ${String(manifest.samples.length).padStart(2, '0')}`;
-      clearLegacyResultSizing();
-
-      requestAnimationFrame(() => {
-        const activeCase = document.querySelector(`.case[data-case="${active}"]`);
-        if (!activeCase) return;
-
-        /* Results are the primary comparison surface: load them first, gently
-           staggered to avoid a one-frame GPU/network spike. */
-        activeCase.querySelectorAll('.result .viewer').forEach((el, index) => {
-          setTimeout(() => {
-            if (activeCase.classList.contains('active')) initViewer(el);
-          }, index * 45);
-        });
-
-        /* Library Parts are lazy-loaded only while horizontally visible. */
-        setupLibraryObserver(activeCase);
-      });
-    }
-
-    window.__omnicadClearLegacyResultSizing = clearLegacyResultSizing;
-
-    buildCases();
-    window.addEventListener('pagehide', () => {
-      if (libraryObserver) libraryObserver.disconnect();
-      document.querySelectorAll('.case').forEach(disposeCase);
-    });
-
-    document.getElementById('prevCase').addEventListener('click', () => showCase(active - 1));
-    document.getElementById('nextCase').addEventListener('click', () => showCase(active + 1));
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowLeft') showCase(active - 1);
-      if (event.key === 'ArrowRight') showCase(active + 1);
-    });
-    showCase(0);
-  </script>
+        <div id="loading" class="loading">
+          <div class="loader-card">
+            <div class="loader-ring"></div>
+            <div id="loaderText" class="loader-text">Loading qualitative result…</div>
+          </div>
+        </div>
+
+        <div id="errorBox" class="error">
+          <h2>Unable to load the result assets</h2>
+          <p id="errorText">Run a local HTTP server from the <strong>repository root</strong>, then open this folder through HTTP. Example:<br /><code>python -m http.server 8898</code></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="viewer-source.js?v=linkgpt-palette-v4"></script>
+  <script src="viewer-runtime.js?v=linkgpt-palette-v4" onerror="document.getElementById('loading').classList.add('done'); document.getElementById('errorText').textContent='Unable to read viewer-runtime.js'; document.getElementById('errorBox').classList.add('visible');"></script>
 </body>
 </html>

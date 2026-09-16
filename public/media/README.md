@@ -1,10 +1,16 @@
 # Media assets
 
-The qualitative showcase in `index.html` loads:
+The qualitative showcase in the root `index.html` embeds `qualitative_3d/index.html`.
+The viewer uses the six-case manifest, the GLB results under `qualitative_3d/models/`,
+and the Case 01 ground-truth OBJ parts under `qualitative_3d/case01_parts/`.
 
-- `3D-interaction.mp4` — one continuous MP4 containing all OmniCAD qualitative cases.
+The embedded viewer supports model and case switching, orbit/zoom/pan controls,
+camera presets, component selection, and exploded-assembly inspection.
 
-Recommended web encode: 5120×960, H.264, CRF 16, `yuv420p`, `faststart`.
-The original 7680×1440 master can be kept separately.
-
-All paper figures are displayed with their original colors; do not apply CSS color filters.
+The viewer also supports opening the homepage directly with `file://`.
+`viewer-runtime.js` is the bundled Three.js runtime; `viewer-source.js` contains
+the viewer source and manifest. In file mode, `local_payloads/` supplies each
+selected model through a classic script because browsers block local fetches.
+HTTP mode continues to read the original OBJ/GLB files.
+After changing `app.js`, `app_runtime.js`, the manifest, or assets, regenerate
+these files with `node scripts/build-qualitative-viewer.cjs <path-to-esbuild>`.
